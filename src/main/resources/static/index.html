@@ -11,7 +11,7 @@
         html,body{margin:0}
         body{background:var(--bg);color:var(--text);font-family:Manrope,system-ui,-apple-system,sans-serif;line-height:1.5;min-height:100vh}
         main{max-width:680px;margin:0 auto;padding:32px 20px 120px}
-        h1{font-size:2rem;font-weight:800;margin:0;letter-spacing:-.02em;text-transform:capitalize}
+        h1{font-size:2rem;font-weight:800;margin:0;letter-spacing:-.02em}
         .sub{color:var(--muted);margin:4px 0 20px}
         .progress{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:8px}
         .progress i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .4s}
@@ -263,7 +263,8 @@
         aba("hoje");
     };
 
-    $("data").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+    const dataHoje = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+$("data").textContent = dataHoje.charAt(0).toUpperCase() + dataHoje.slice(1);
     carregarHoje();
 </script>
 </body>
