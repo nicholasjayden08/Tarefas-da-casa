@@ -85,6 +85,15 @@ public class TarefaService {
         return paraResponse(tarefa);
     }
 
+    @Transactional
+    public TarefaResponse desfazer(Long id) {
+        Tarefa tarefa = buscarEntidade(id);
+        LocalDate hoje = LocalDate.now();
+        execucaoRepository.deleteByTarefaIdAndDataHoraConclusaoBetween(
+                id, hoje.atStartOfDay(), hoje.atTime(LocalTime.MAX));
+        return paraResponse(tarefa);
+    }
+
     private Tarefa buscarEntidade(Long id) {
         return tarefaRepository.findById(id).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
