@@ -54,4 +54,9 @@ public class TarefaController {
     public TarefaResponse concluir(@PathVariable Long id) {
         return service.concluir(id);
     }
+
+    @DeleteMapping("/{id}/concluir")
+    public TarefaResponse desfazer(@PathVariable Long id) {
+        return service.desfazer(id);
+    }
 }
