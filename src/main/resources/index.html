@@ -256,4 +256,15 @@
             periodoDoDia: $("periodo").value || null,
             horario: $("horario").value || null,
             diasDaSemana: [...$("dias").querySelectorAll("input:checked")].map(c => c.value),
-            diaDoMes: $("freq").value === "MENSAL" && $("diaMes").value ?
+            diaDoMes: $("freq").value === "MENSAL" && $("diaMes").value ? Number($("diaMes").value) : null
+        };
+        await api("/tarefas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        $("dlg").close();
+        aba("hoje");
+    };
+
+    $("data").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+    carregarHoje();
+</script>
+</body>
+</html>
