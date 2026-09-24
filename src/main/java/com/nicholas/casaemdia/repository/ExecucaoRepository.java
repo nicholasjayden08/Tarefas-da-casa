@@ -16,6 +16,9 @@ public interface ExecucaoRepository extends JpaRepository<Execucao, Long> {
     long countByTarefaIdAndDataHoraConclusaoBetween(
             Long tarefaId, LocalDateTime inicio, LocalDateTime fim);
 
+    void deleteByTarefaIdAndDataHoraConclusaoBetween(
+            Long tarefaId, LocalDateTime inicio, LocalDateTime fim);
+
     @Query("select e.dataHoraConclusao from Execucao e where e.tarefa.id = :tarefaId order by e.dataHoraConclusao desc")
     List<LocalDateTime> findDatasConclusao(@Param("tarefaId") Long tarefaId);
 
