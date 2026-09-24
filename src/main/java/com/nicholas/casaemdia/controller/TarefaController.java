@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.nicholas.casaemdia.dto.HojeResponse;
 
 import java.util.List;
 
@@ -20,6 +21,11 @@ public class TarefaController {
     @GetMapping
     public List<TarefaResponse> listar() {
         return service.listar();
+    }
+
+    @GetMapping("/hoje")
+    public HojeResponse hoje() {
+        return service.hoje();
     }
 
     @GetMapping("/{id}")

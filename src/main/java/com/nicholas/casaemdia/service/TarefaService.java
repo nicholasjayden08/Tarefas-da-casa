@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.nicholas.casaemdia.dto.HojeResponse;
+import com.nicholas.casaemdia.model.PeriodoDoDia;
+import java.util.Comparator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +30,21 @@ public class TarefaService {
 
     public List<TarefaResponse> listar() {
         return tarefaRepository.findByAtivaTrue().stream().map(this::paraResponse).toList();
+    }
+
+    public HojeResponse hoje() {
+        LocalDate hoje = LocalDate.now();
+        List<TarefaResponse> devidas = tarefaRepository.findByAtivaTrue().stream()
+                .filter(t -> devidaEm(t, hoje))
+                .sorted(Comparator.comparing(Tarefa::getHorario,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::paraResponse)
+                .toList();
+        return new HojeResponse(
+                porPeriodo(devidas, PeriodoDoDia.MANHA),
+                porPeriodo(devidas, PeriodoDoDia.TARDE),
+                porPeriodo(devidas, PeriodoDoDia.NOITE),
+                porPeriodo(devidas, null));
     }
 
     public TarefaResponse buscar(Long id) {
@@ -91,5 +109,19 @@ public class TarefaService {
 
     private TarefaResponse paraResponse(Tarefa t) {
         return TarefaResponse.de(t, feitaHoje(t.getId()));
+    }
+
+    private boolean devidaEm(Tarefa t, LocalDate data) {
+        return switch (t.getFrequencia()) {
+            case DIARIA -> true;
+            case SEMANAL -> t.getDiasDaSemana().isEmpty()
+                    || t.getDiasDaSemana().contains(data.getDayOfWeek());
+            case MENSAL -> t.getDiaDoMes() == null
+                    || Math.min(t.getDiaDoMes(), data.lengthOfMonth()) == data.getDayOfMonth();
+        };
+    }
+
+    private List<TarefaResponse> porPeriodo(List<TarefaResponse> lista, PeriodoDoDia periodo) {
+        return lista.stream().filter(r -> r.periodoDoDia() == periodo).toList();
     }
 }
