@@ -23,7 +23,7 @@
         .task{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
         .check{width:28px;height:28px;flex:none;border-radius:50%;border:2px solid var(--muted);background:none;cursor:pointer;color:#0e0c15;font-size:16px;line-height:1;padding:0}
         .check:hover:not(:disabled){border-color:var(--accent)}
-        .done .check{background:var(--ok);border-color:var(--ok);cursor:default}
+        .done .check{background:var(--ok);border-color:var(--ok)}
         .done .name{text-decoration:line-through;color:var(--muted)}
         .info{flex:1;min-width:0}
         .name{font-weight:600}
@@ -151,9 +151,9 @@
     function taskRow(t) {
         const row = el("div", "task" + (t.feitaHoje ? " done" : ""));
         const check = el("button", "check", t.feitaHoje ? "✓" : "");
-        check.setAttribute("aria-label", "Marcar " + t.nome + " como feita");
-        check.disabled = t.feitaHoje;
-        check.onclick = async () => { await api("/tarefas/" + t.id + "/concluir", { method: "POST" }); carregarHoje(); };
+        check.setAttribute("aria-label", (t.feitaHoje ? "Desfazer " : "Marcar ") + t.nome);
+        check.onclick = async () => { await api("/tarefas/" + t.id + "/concluir", { method: t.feitaHoje ? "DELETE" : "POST" });
+            carregarHoje(); };
         const info = el("div", "info");
         info.appendChild(el("div", "name", t.nome));
         const meta = [t.comodo, t.horario ? t.horario.slice(0, 5) : null].filter(Boolean).join(" · ");
