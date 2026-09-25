@@ -25,6 +25,9 @@
         .check:hover:not(:disabled){border-color:var(--accent)}
         .done .check{background:var(--ok);border-color:var(--ok)}
         .done .name{text-decoration:line-through;color:var(--muted)}
+        .late .name{color:var(--danger)}
+        .late .meta{color:var(--danger)}
+        .tag-late{display:inline-block;margin-left:8px;font-size:.75rem;font-weight:700;color:var(--danger)}
         .info{flex:1;min-width:0}
         .name{font-weight:600}
         .meta{font-size:.85rem;color:var(--muted)}
@@ -149,7 +152,8 @@
     }
 
     function taskRow(t) {
-        const row = el("div", "task" + (t.feitaHoje ? " done" : ""));
+        const classe = t.feitaHoje ? " done" : (t.atrasada ? " late" : "");
+        const row = el("div", "task" + classe);
         const check = el("button", "check", t.feitaHoje ? "✓" : "");
         check.setAttribute("aria-label", (t.feitaHoje ? "Desfazer " : "Marcar ") + t.nome);
         check.onclick = async () => { await api("/tarefas/" + t.id + "/concluir", { method: t.feitaHoje ? "DELETE" : "POST" });
@@ -157,7 +161,11 @@
         const info = el("div", "info");
         info.appendChild(el("div", "name", t.nome));
         const meta = [t.comodo, t.horario ? t.horario.slice(0, 5) : null].filter(Boolean).join(" · ");
-        if (meta) info.appendChild(el("div", "meta", meta));
+        if (meta) {
+            const metaEl = el("div", "meta", meta);
+            if (t.atrasada) metaEl.appendChild(el("span", "tag-late", "Atrasada"));
+            info.appendChild(metaEl);
+        }
         const del = el("button", "del", "✕");
         del.setAttribute("aria-label", "Excluir " + t.nome);
         del.onclick = async () => {
