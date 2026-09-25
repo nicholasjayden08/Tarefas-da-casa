@@ -22,7 +22,7 @@
         h2{font-size:1.05rem;font-weight:600;color:var(--muted);margin:26px 0 10px}
         .task{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
         .check{width:28px;height:28px;flex:none;border-radius:50%;border:2px solid var(--muted);background:none;cursor:pointer;color:#0e0c15;font-size:16px;line-height:1;padding:0}
-        .check:hover:not(:disabled){border-color:var(--accent)}
+        .check:hover{border-color:var(--accent)}
         .done .check{background:var(--ok);border-color:var(--ok)}
         .done .name{text-decoration:line-through;color:var(--muted)}
         .late .name{color:var(--danger)}
@@ -30,13 +30,10 @@
         .tag-late{display:inline-block;margin-left:8px;font-size:.75rem;font-weight:700;color:var(--danger)}
         .info{flex:1;min-width:0}
         .name{font-weight:600}
-        .name{cursor:pointer}
-        .name:hover{color:var(--accent)}
         .meta{font-size:.85rem;color:var(--muted)}
-        .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px}
-        .del:hover{color:var(--danger)}
-        .edit{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px}
+        .edit,.del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px}
         .edit:hover{color:var(--accent)}
+        .del:hover{color:var(--danger)}
         .empty{color:var(--muted);padding:40px 0;text-align:center}
         .totals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
         .total{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -159,10 +156,14 @@
     function taskRow(t) {
         const classe = t.feitaHoje ? " done" : (t.atrasada ? " late" : "");
         const row = el("div", "task" + classe);
+
         const check = el("button", "check", t.feitaHoje ? "✓" : "");
         check.setAttribute("aria-label", (t.feitaHoje ? "Desfazer " : "Marcar ") + t.nome);
-        check.onclick = async () => { await api("/tarefas/" + t.id + "/concluir", { method: t.feitaHoje ? "DELETE" : "POST" });
-            carregarHoje(); };
+        check.onclick = async () => {
+            await api("/tarefas/" + t.id + "/concluir", { method: t.feitaHoje ? "DELETE" : "POST" });
+            carregarHoje();
+        };
+
         const info = el("div", "info");
         info.appendChild(el("div", "name", t.nome));
         const meta = [t.comodo, t.horario ? t.horario.slice(0, 5) : null].filter(Boolean).join(" · ");
@@ -171,6 +172,7 @@
             if (t.atrasada) metaEl.appendChild(el("span", "tag-late", "Atrasada"));
             info.appendChild(metaEl);
         }
+
         const editBtn = el("button", "edit", "✎");
         editBtn.setAttribute("aria-label", "Editar " + t.nome);
         editBtn.onclick = () => abrirModal(t);
@@ -182,6 +184,7 @@
             await api("/tarefas/" + t.id, { method: "DELETE" });
             carregarHoje();
         };
+
         row.append(check, info, editBtn, del);
         return row;
     }
@@ -253,6 +256,8 @@
         $("boxSemana").classList.toggle("hidden", $("freq").value !== "SEMANAL");
         $("boxMes").classList.toggle("hidden", $("freq").value !== "MENSAL");
     }
+    $("freq").onchange = ajustaForm;
+
     function abrirModal(t) {
         editandoId = t ? t.id : null;
         $("dlgTitulo").textContent = t ? "Editar tarefa" : "Nova tarefa";
@@ -268,9 +273,9 @@
         $("dlg").showModal();
         $("nome").focus();
     }
-    function abrirEdicao(t) { abrirModal(t); }
     $("nova").onclick = () => abrirModal(null);
     $("cancelar").onclick = () => $("dlg").close();
+
     $("salvar").onclick = async () => {
         const nome = $("nome").value.trim();
         if (!nome) { toast("Dê um nome para a tarefa."); return; }
@@ -291,7 +296,7 @@
     };
 
     const dataHoje = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-$("data").textContent = dataHoje.charAt(0).toUpperCase() + dataHoje.slice(1);
+    $("data").textContent = dataHoje.charAt(0).toUpperCase() + dataHoje.slice(1);
     carregarHoje();
 </script>
 </body>
