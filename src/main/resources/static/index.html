@@ -30,9 +30,13 @@
         .tag-late{display:inline-block;margin-left:8px;font-size:.75rem;font-weight:700;color:var(--danger)}
         .info{flex:1;min-width:0}
         .name{font-weight:600}
+        .name{cursor:pointer}
+        .name:hover{color:var(--accent)}
         .meta{font-size:.85rem;color:var(--muted)}
         .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px}
         .del:hover{color:var(--danger)}
+        .edit{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px}
+        .edit:hover{color:var(--accent)}
         .empty{color:var(--muted);padding:40px 0;text-align:center}
         .totals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
         .total{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -80,7 +84,7 @@
 <button class="fab" id="nova">+ Nova tarefa</button>
 
 <dialog id="dlg">
-    <h3>Nova tarefa</h3>
+    <h3 id="dlgTitulo">Nova tarefa</h3>
     <div id="f">
         <label for="nome">Nome</label>
         <input id="nome" maxlength="80" placeholder="Ex.: Lavar a louça">
@@ -125,6 +129,7 @@
 <script>
     const $ = id => document.getElementById(id);
     const DIAS = [["MONDAY","Seg"],["TUESDAY","Ter"],["WEDNESDAY","Qua"],["THURSDAY","Qui"],["FRIDAY","Sex"],["SATURDAY","Sáb"],["SUNDAY","Dom"]];
+    let editandoId = null;
 
     function el(tag, cls, text) {
         const e = document.createElement(tag);
@@ -166,6 +171,10 @@
             if (t.atrasada) metaEl.appendChild(el("span", "tag-late", "Atrasada"));
             info.appendChild(metaEl);
         }
+        const editBtn = el("button", "edit", "✎");
+        editBtn.setAttribute("aria-label", "Editar " + t.nome);
+        editBtn.onclick = () => abrirModal(t);
+
         const del = el("button", "del", "✕");
         del.setAttribute("aria-label", "Excluir " + t.nome);
         del.onclick = async () => {
@@ -173,7 +182,7 @@
             await api("/tarefas/" + t.id, { method: "DELETE" });
             carregarHoje();
         };
-        row.append(check, info, del);
+        row.append(check, info, editBtn, del);
         return row;
     }
 
@@ -244,15 +253,23 @@
         $("boxSemana").classList.toggle("hidden", $("freq").value !== "SEMANAL");
         $("boxMes").classList.toggle("hidden", $("freq").value !== "MENSAL");
     }
-    $("freq").onchange = ajustaForm;
-    $("nova").onclick = () => {
-        ["nome", "comodo", "diaMes", "horario"].forEach(i => $(i).value = "");
-        $("freq").value = "DIARIA"; $("periodo").value = "";
-        $("dias").querySelectorAll("input").forEach(c => c.checked = false);
+    function abrirModal(t) {
+        editandoId = t ? t.id : null;
+        $("dlgTitulo").textContent = t ? "Editar tarefa" : "Nova tarefa";
+        $("nome").value = t ? t.nome : "";
+        $("comodo").value = t ? (t.comodo || "") : "";
+        $("freq").value = t ? t.frequencia : "DIARIA";
+        $("periodo").value = t ? (t.periodoDoDia || "") : "";
+        $("diaMes").value = t && t.diaDoMes ? t.diaDoMes : "";
+        $("horario").value = t && t.horario ? t.horario.slice(0, 5) : "";
+        const diasSelecionados = t ? (t.diasDaSemana || []) : [];
+        $("dias").querySelectorAll("input").forEach(c => c.checked = diasSelecionados.includes(c.value));
         ajustaForm();
         $("dlg").showModal();
         $("nome").focus();
-    };
+    }
+    function abrirEdicao(t) { abrirModal(t); }
+    $("nova").onclick = () => abrirModal(null);
     $("cancelar").onclick = () => $("dlg").close();
     $("salvar").onclick = async () => {
         const nome = $("nome").value.trim();
@@ -266,7 +283,9 @@
             diasDaSemana: [...$("dias").querySelectorAll("input:checked")].map(c => c.value),
             diaDoMes: $("freq").value === "MENSAL" && $("diaMes").value ? Number($("diaMes").value) : null
         };
-        await api("/tarefas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const url = editandoId ? "/tarefas/" + editandoId : "/tarefas";
+        const method = editandoId ? "PUT" : "POST";
+        await api(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         $("dlg").close();
         aba("hoje");
     };
