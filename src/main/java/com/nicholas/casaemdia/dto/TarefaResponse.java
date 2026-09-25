@@ -19,11 +19,14 @@ public record TarefaResponse(
         PeriodoDoDia periodoDoDia,
         LocalTime horario,
         boolean ativa,
-        boolean feitaHoje
+        boolean feitaHoje,
+        boolean atrasada
 ) {
     public static TarefaResponse de(Tarefa t, boolean feitaHoje) {
+        boolean atrasada = !feitaHoje && t.getHorario() != null
+                && t.getHorario().isBefore(java.time.LocalTime.now());
         return new TarefaResponse(t.getId(), t.getNome(), t.getDescricao(), t.getComodo(),
                 t.getFrequencia(), Set.copyOf(t.getDiasDaSemana()), t.getDiaDoMes(),
-                t.getPeriodoDoDia(), t.getHorario(), t.isAtiva(), feitaHoje);
+                t.getPeriodoDoDia(), t.getHorario(), t.isAtiva(), feitaHoje, atrasada);
     }
 }
