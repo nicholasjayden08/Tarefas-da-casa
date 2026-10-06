@@ -1,0 +1,11 @@
+{
+  "name": "Casa em dia",
+  "short_name": "Casa em dia",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0e0c15",
+  "theme_color": "#0e0c15",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
